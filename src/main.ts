@@ -8,11 +8,11 @@
 
 import './style.css'
 import webGPUTriangle from './webGPUTriangle'
-import webGPUCompute from './webGPUComputation'
+// import webGPUCompute from './webGPUComputation'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <canvas id="gfx-main"></canvas>
 `
 
 webGPUTriangle()
-webGPUCompute()
+// webGPUCompute()

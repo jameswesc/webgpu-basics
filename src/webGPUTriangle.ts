@@ -6,7 +6,7 @@
  *
  */
 
-import shaderCode from './shader.wgsl?raw'
+import shaderCode from './triangleShader.wgsl?raw'
 
 export default async function main() {
   // Assuming we have an adapter
@@ -32,7 +32,7 @@ export default async function main() {
   })
 
   const pipeline: GPURenderPipeline = device.createRenderPipeline({
-    label: 'Red triangle pipeline',
+    label: 'Triangle pipeline',
     layout: 'auto',
     vertex: {
       // entryPoint: 'vs', - not required as only one function
@@ -70,7 +70,7 @@ export default async function main() {
     // make a render pass encoder to encode render specific commands
     const pass: GPURenderPassEncoder = encoder.beginRenderPass(renderPassDescriptor)
     pass.setPipeline(pipeline)
-    pass.draw(3) // call shader 3 times (for tirangle list)
+    pass.draw(6) // call shader 3 times (for tirangle list)
     pass.end()
 
     const commandBuffer = encoder.finish()
