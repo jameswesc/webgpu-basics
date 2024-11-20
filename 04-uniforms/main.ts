@@ -33,15 +33,19 @@ async function main() {
         },
     });
 
-    const uniformBufferSize =
-        4 * 4 + // vec4f (4 x float32 = 4 x 4 bytes)
-        2 * 4 + // vec2f (2 x float32 = 2 x 4 bytes)
-        2 * 4; // vec2f (2 x float32 = 2 x 4 bytes)
+    // For the uniforms that don't change
+    const staticUniformBufferSize =
+        4 * 4 + // color: vec4f (4 x float32 = 4 x 4 bytes)
+        2 * 4 + // offset: vec2f (2 x float32 = 2 x 4 bytes)
+        2 * 4; // padding: minimum size of 32 bytes (just in this case?)
+
+    // For the uniforms that do change
+    const uniformBufferSize = 2 * 4; // scale: vec2f (2 x float32 = 2 x 4 bytes)
 
     const kOffsets = {
         color: 0,
-        scale: 4,
-        offset: 6,
+        offset: 4,
+        scale: 0,
     };
 
     const numberOfObjects = 100;
@@ -49,38 +53,55 @@ async function main() {
         uniformBuffer: GPUBuffer;
         uniformValues: Float32Array;
         bindGroup: GPUBindGroup;
+        scale: number;
     }> = [];
 
     for (let i = 0; i < numberOfObjects; i++) {
-        const uniformBuffer = device.createBuffer({
-            size: uniformBufferSize,
+        const staticUniformBuffer = device.createBuffer({
+            label: "04 Uniforms - Static Uniform Buffer - Object: " + i,
+            size: staticUniformBufferSize,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
 
-        // each element of a float32 array is 4 bytes, so divide by 4
+        // Set the static uniforms only once
+        {
+            const staticUniformValues = new Float32Array(
+                staticUniformBufferSize / 4,
+            );
+            staticUniformValues.set(
+                [Math.random(), Math.random(), Math.random(), 1],
+                kOffsets.color,
+            );
+            staticUniformValues.set(
+                [Math.random() * 2 - 1, Math.random() * 2 - 1],
+                kOffsets.offset,
+            );
+            device.queue.writeBuffer(
+                staticUniformBuffer,
+                0,
+                staticUniformValues,
+            );
+        }
+
+        const uniformBuffer = device.createBuffer({
+            label: "04 Uniforms - Changing Uniform Buffer - Object: " + i,
+            size: uniformBufferSize,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
         const uniformValues = new Float32Array(uniformBufferSize / 4);
 
-        uniformValues.set(
-            [Math.random(), Math.random(), Math.random(), 1],
-            kOffsets.color,
-        );
-        uniformValues.set([Math.random(), Math.random()], kOffsets.scale);
-        uniformValues.set(
-            [Math.random() * 2 - 1, Math.random() * 2 - 1],
-            kOffsets.offset,
-        );
-
-        // can write buffer here or in render function loop
-        // here you would write buffers that aren't changing
-        device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
+        const scale = Math.random() * 0.5 + 0.1;
 
         const bindGroup = device.createBindGroup({
-            label: "04 Uniforms - Uniform Bind Group - Object " + i,
+            label: "04 Uniforms - Uniform Bind Group 0 - Object " + i,
             layout: pipeline.getBindGroupLayout(0),
-            entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
+            entries: [
+                { binding: 0, resource: { buffer: staticUniformBuffer } },
+                { binding: 1, resource: { buffer: uniformBuffer } },
+            ],
         });
 
-        objectData.push({ uniformBuffer, uniformValues, bindGroup });
+        objectData.push({ uniformBuffer, uniformValues, bindGroup, scale });
     }
 
     function render() {
@@ -102,8 +123,15 @@ async function main() {
 
         renderPass.setPipeline(pipeline);
 
-        for (const { uniformBuffer, uniformValues, bindGroup } of objectData) {
-            // and here you would write buffers that are changing
+        const aspect = canvas.width / canvas.height;
+
+        for (const {
+            uniformBuffer,
+            uniformValues,
+            bindGroup,
+            scale,
+        } of objectData) {
+            uniformValues.set([scale / aspect, scale], kOffsets.scale);
             device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
             renderPass.setBindGroup(0, bindGroup);
             renderPass.draw(3);

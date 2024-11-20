@@ -1,10 +1,14 @@
-struct TriangleData {
+struct TriangleStatic {
     color: vec4f,
-    scale: vec2f,
     offset: vec2f
 }
 
-@group(0) @binding(0) var<uniform> triangle_data: TriangleData;
+struct TriangleData {
+    scale: vec2f
+}
+
+@group(0) @binding(0) var<uniform> triangle_static: TriangleStatic;
+@group(0) @binding(1) var<uniform> triangle_data: TriangleData;
 
 @vertex fn vertex_shader(
     @builtin(vertex_index) vertex_index: u32,
@@ -15,20 +19,13 @@ struct TriangleData {
         vec2f(0.0, 0.5),
     );
 
-    let colors = array(
-        vec4f(1, 1, 0, 1), // red
-        vec4f(0, 1, 1, 1), // green
-        vec4f(1, 0, 1, 1), // blue
-    );
-
-
     return vec4f(
-        positions[vertex_index] * triangle_data.scale + triangle_data.offset,
+        positions[vertex_index] * triangle_data.scale + triangle_static.offset,
         0.0,
         1.0
     );
 }
 
 @fragment fn fragment_shader() -> @location(0) vec4f {
-    return triangle_data.color;
+    return triangle_static.color;
 }
