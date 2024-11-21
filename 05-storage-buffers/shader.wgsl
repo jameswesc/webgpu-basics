@@ -29,15 +29,15 @@ struct VertexOutput {
     let triangle_data = triangle_data_arr[instance_index];
     let position = vertex_arr[vertex_index].position;
 
-    var vx_out : VertexOutput;
-    vx_out.position = vec4f(
+    var vs_out : VertexOutput;
+    vs_out.position = vec4f(
         position * triangle_data.scale + triangle_static.offset,
         0.0,
         1.0
     );
-    vx_out.color = triangle_static.color;
+    vs_out.color = triangle_static.color;
 
-    return vx_out;
+    return vs_out;
 }
 
 @fragment fn fragment_shader(frag_in: VertexOutput) -> @location(0) vec4f {

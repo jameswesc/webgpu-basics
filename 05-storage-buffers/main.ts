@@ -100,7 +100,7 @@ async function main() {
 
     function render() {
         const encoder = device.createCommandEncoder({
-            label: "04 Uniforms - Command Encoder",
+            label: "05 Storage Buffers - Command Encoder",
         });
 
         const view = context.getCurrentTexture().createView();
@@ -111,7 +111,7 @@ async function main() {
             clearValue: { r: 0.8, g: 0.8, b: 0.8, a: 1 },
         };
         const renderPass = encoder.beginRenderPass({
-            label: "04 Uniforms - Render Pass",
+            label: "05 Storage Buffers- Render Pass",
             colorAttachments: [colorAttachment],
         });
         renderPass.setPipeline(pipeline);
