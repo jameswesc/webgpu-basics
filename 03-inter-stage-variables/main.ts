@@ -1,7 +1,6 @@
 import { renderOnResizeObserver } from "../utils/renderOnResizeObserver";
 import { getAdapter, getCanvas, getContext, getDevice } from "../utils/setup";
 import shaderCode from "./shader.wgsl?raw";
-import "../style.css";
 
 async function main() {
     const adapter = await getAdapter();

@@ -1,4 +1,3 @@
-import "../style.css";
 import { getAdapter, getDevice } from "../utils/setup";
 import shaderCode from "./shader.wgsl?raw";
 

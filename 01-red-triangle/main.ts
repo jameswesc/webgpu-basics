@@ -1,4 +1,3 @@
-import "../style.css";
 import { renderOnResizeObserver } from "../utils/renderOnResizeObserver";
 import { getAdapter, getCanvas, getContext, getDevice } from "../utils/setup";
 import shaderCode from "./shader.wgsl?raw";

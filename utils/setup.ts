@@ -41,3 +41,18 @@ export function getContext(canvas: HTMLCanvasElement) {
 
     return context;
 }
+
+export async function initWebGPU(canvasID?: string) {
+    const adapter = await getAdapter();
+    const device = await getDevice(adapter);
+    const canvas = getCanvas(canvasID);
+    const context = getContext(canvas);
+
+    const format = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({
+        device,
+        format,
+    });
+
+    return { adapter, device, canvas, context, format };
+}
