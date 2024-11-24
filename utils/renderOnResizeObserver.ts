@@ -1,6 +1,6 @@
 export function renderOnResizeObserver(
     canvas: HTMLCanvasElement,
-    renderFn: () => void,
+    render: () => void,
     maxSize?: number,
 ) {
     const observer = new ResizeObserver((entries) => {
@@ -23,7 +23,7 @@ export function renderOnResizeObserver(
         canvas.width = Math.max(1, width);
         canvas.height = Math.max(1, height);
 
-        renderFn();
+        render();
     });
 
     observer.observe(canvas);
