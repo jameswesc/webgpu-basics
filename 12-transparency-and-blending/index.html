@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../style.css" />
+        <title>WebGPU Fundamentals - 12 Transparency and Blending</title>
+        <style>
+            canvas {
+                background-color: #404040;
+                background-image: linear-gradient(
+                        45deg,
+                        #808080 25%,
+                        transparent 25%
+                    ),
+                    linear-gradient(-45deg, #808080 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #808080 75%),
+                    linear-gradient(-45deg, transparent 75%, #808080 75%);
+                background-size: 32px 32px;
+                background-position:
+                    0 0,
+                    0 16px,
+                    16px -16px,
+                    -16px 0px;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <script type="module" src="./main.ts"></script>
+    </body>
+</html>
