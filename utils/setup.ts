@@ -1,5 +1,5 @@
-export async function getAdapter() {
-    const adapter = await navigator.gpu?.requestAdapter();
+export async function getAdapter(options?: GPURequestAdapterOptions) {
+    const adapter = await navigator.gpu?.requestAdapter(options);
 
     if (!adapter) {
         throw new Error("WebGPU not supported. Could not get adapter");
@@ -8,8 +8,11 @@ export async function getAdapter() {
     return adapter;
 }
 
-export async function getDevice(adapter: GPUAdapter) {
-    const device = await adapter.requestDevice();
+export async function getDevice(
+    adapter: GPUAdapter,
+    descriptor?: GPUDeviceDescriptor,
+) {
+    const device = await adapter.requestDevice(descriptor);
 
     if (!device) {
         throw new Error("WebGPU not supported. Could not get device");
