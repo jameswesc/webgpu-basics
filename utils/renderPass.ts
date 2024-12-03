@@ -1,7 +1,7 @@
 export function createDefaultRenderPass(
     device: GPUDevice,
     context: GPUCanvasContext,
-    label: string,
+    label?: string,
 ) {
     const commandEncoder = device.createCommandEncoder();
     const view = context.getCurrentTexture().createView();
