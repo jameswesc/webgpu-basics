@@ -41,12 +41,15 @@ async function main() {
     const uniformBufferSize =
         4 * 4 + //  color       : vec4f
         2 * 4 + //  resolution  : vec2f
-        2 * 4; //   translation : vec2f
+        2 * 4 + //  translation : vec2f
+        2 * 4 + //  rotation    : vec2f
+        2 * 4; // padding
 
     const uniformOffsets = {
         color: 0,
         resolution: 4,
         translation: 6,
+        rotation: 8,
     };
 
     const uniformBuffer = device.createBuffer({
@@ -63,6 +66,10 @@ async function main() {
     const translationValues = uniformValues.subarray(
         uniformOffsets.translation,
         uniformOffsets.translation + 2,
+    );
+    const rotationValues = uniformValues.subarray(
+        uniformOffsets.rotation,
+        uniformOffsets.rotation + 2,
     );
 
     // Set color once as it wont chage
@@ -92,6 +99,7 @@ async function main() {
 
     const settings = {
         translate: { x: 0, y: 0 },
+        rotation: 0,
     };
 
     const pane = new Pane();
@@ -99,11 +107,18 @@ async function main() {
         x: { min: 0, max: 500 },
         y: { min: 0, max: 500 },
     });
+    pane.addBinding(settings, "rotation", {
+        min: 0,
+        max: 360,
+        step: 1,
+    });
 
     function render() {
         const dpr = Math.min(devicePixelRatio, 2);
         resolutionValues.set([canvas.width / dpr, canvas.height / dpr]);
         translationValues.set([settings.translate.x, settings.translate.y]);
+        const theta = (settings.rotation * 2 * Math.PI) / 360;
+        rotationValues.set([Math.cos(theta), Math.sin(theta)]);
         device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
 
         const encoder = device.createCommandEncoder();
