@@ -43,13 +43,14 @@ async function main() {
         2 * 4 + //  resolution  : vec2f
         2 * 4 + //  translation : vec2f
         2 * 4 + //  rotation    : vec2f
-        2 * 4; // padding
+        2 * 4; //   scale       : vec2f
 
     const uniformOffsets = {
         color: 0,
         resolution: 4,
         translation: 6,
         rotation: 8,
+        scale: 10,
     };
 
     const uniformBuffer = device.createBuffer({
@@ -58,10 +59,10 @@ async function main() {
     });
 
     const uniformValues = new Float32Array(uniformBufferSize / 4);
-    const colorValues = uniformValues.subarray(0, uniformOffsets.resolution);
+    const colorValues = uniformValues.subarray(0, uniformOffsets.color + 4);
     const resolutionValues = uniformValues.subarray(
         uniformOffsets.resolution,
-        uniformOffsets.translation,
+        uniformOffsets.resolution + 2,
     );
     const translationValues = uniformValues.subarray(
         uniformOffsets.translation,
@@ -70,6 +71,10 @@ async function main() {
     const rotationValues = uniformValues.subarray(
         uniformOffsets.rotation,
         uniformOffsets.rotation + 2,
+    );
+    const scaleValues = uniformValues.subarray(
+        uniformOffsets.scale,
+        uniformOffsets.scale + 2,
     );
 
     // Set color once as it wont chage
@@ -100,6 +105,7 @@ async function main() {
     const settings = {
         translate: { x: 0, y: 0 },
         rotation: 0,
+        scale: { x: 1, y: 1 },
     };
 
     const pane = new Pane();
@@ -112,13 +118,22 @@ async function main() {
         max: 360,
         step: 1,
     });
+    pane.addBinding(settings, "scale");
 
     function render() {
+        // Update all the uniform values
+        // Resolution
         const dpr = Math.min(devicePixelRatio, 2);
         resolutionValues.set([canvas.width / dpr, canvas.height / dpr]);
+        // Translation
         translationValues.set([settings.translate.x, settings.translate.y]);
+        // Rotations
         const theta = (settings.rotation * 2 * Math.PI) / 360;
         rotationValues.set([Math.cos(theta), Math.sin(theta)]);
+        // Scale
+        scaleValues.set([settings.scale.x, settings.scale.y]);
+
+        // Write to uniform buffer
         device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
 
         const encoder = device.createCommandEncoder();
