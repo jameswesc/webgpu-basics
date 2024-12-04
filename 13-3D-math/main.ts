@@ -2,6 +2,7 @@ import { Pane } from "tweakpane";
 import { renderOnResizeObserver } from "../utils/renderOnResizeObserver";
 import { getAdapter, getCanvas, getContext, getDevice } from "../utils/setup";
 import shaderCode from "./shader.wgsl?raw";
+import { mat3 } from "wgpu-matrix";
 
 async function main() {
     const adapter = await getAdapter();
@@ -41,16 +42,13 @@ async function main() {
     const uniformBufferSize =
         4 * 4 + //  color       : vec4f
         2 * 4 + //  resolution  : vec2f
-        2 * 4 + //  translation : vec2f
-        2 * 4 + //  rotation    : vec2f
-        2 * 4; //   scale       : vec2f
+        2 * 4 + //  padding
+        4 * 3 * 4; //  matrix   : mat3x3f
 
     const uniformOffsets = {
         color: 0,
         resolution: 4,
-        translation: 6,
-        rotation: 8,
-        scale: 10,
+        matrix: 8,
     };
 
     const uniformBuffer = device.createBuffer({
@@ -64,17 +62,9 @@ async function main() {
         uniformOffsets.resolution,
         uniformOffsets.resolution + 2,
     );
-    const translationValues = uniformValues.subarray(
-        uniformOffsets.translation,
-        uniformOffsets.translation + 2,
-    );
-    const rotationValues = uniformValues.subarray(
-        uniformOffsets.rotation,
-        uniformOffsets.rotation + 2,
-    );
-    const scaleValues = uniformValues.subarray(
-        uniformOffsets.scale,
-        uniformOffsets.scale + 2,
+    const matrixValues = uniformValues.subarray(
+        uniformOffsets.matrix,
+        uniformOffsets.matrix + 12,
     );
 
     // Set color once as it wont chage
@@ -103,7 +93,7 @@ async function main() {
     });
 
     const settings = {
-        translate: { x: 0, y: 0 },
+        translate: { x: 100, y: 100 },
         rotation: 0,
         scale: { x: 1, y: 1 },
     };
@@ -125,13 +115,32 @@ async function main() {
         // Resolution
         const dpr = Math.min(devicePixelRatio, 2);
         resolutionValues.set([canvas.width / dpr, canvas.height / dpr]);
-        // Translation
-        translationValues.set([settings.translate.x, settings.translate.y]);
-        // Rotations
-        const theta = (settings.rotation * 2 * Math.PI) / 360;
-        rotationValues.set([Math.cos(theta), Math.sin(theta)]);
-        // Scale
-        scaleValues.set([settings.scale.x, settings.scale.y]);
+
+        // Matrix
+        const translation = mat3.translation([
+            settings.translate.x,
+            settings.translate.y,
+        ]);
+        const theta = settings.rotation * (Math.PI / 180);
+        const rotation = mat3.rotation(theta);
+        const scale = mat3.scaling([settings.scale.x, settings.scale.y]);
+
+        // prettier-ignore
+        const projectionMatrix = mat3.create(
+            2 / canvas.clientWidth, 0, 0,
+            0, -2 / canvas.clientHeight, 0,
+            -1, 1, 1,
+        );
+
+        let m = mat3.identity();
+        m = mat3.multiply(m, projectionMatrix);
+        m = mat3.multiply(m, translation);
+        m = mat3.multiply(m, rotation);
+        m = mat3.multiply(m, scale);
+        const moveOrigin = mat3.translation([-50, -75]);
+        m = mat3.multiply(m, moveOrigin);
+
+        matrixValues.set(m);
 
         // Write to uniform buffer
         device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
